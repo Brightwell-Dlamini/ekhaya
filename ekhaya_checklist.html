@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ekhaya Development Checklist</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --accent: #0f172a;
+      --accent-light: #334155;
+      --success: #16a34a;
+      --success-bg: #dcfce7;
+      --warning: #ca8a04;
+      --warning-bg: #fef9c3;
+      --danger: #dc2626;
+      --danger-bg: #fee2e2;
+      --info: #2563eb;
+      --info-bg: #dbeafe;
+      --radius: 12px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.05);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); min-height: 100vh; color: var(--text); }
+    .container { max-width: 800px; margin: 0 auto; padding: 0 16px; }
+    .header { text-align: center; padding: 40px 16px 20px; }
+    .header h1 { font-size: 32px; font-weight: 700; margin-bottom: 6px; letter-spacing: -0.5px; }
+    .header p { font-size: 15px; color: var(--text-muted); margin-bottom: 20px; }
+    .progress-bar { background: var(--border); height: 10px; border-radius: 5px; overflow: hidden; max-width: 420px; margin: 0 auto 12px; }
+    .progress-fill { background: var(--accent); height: 100%; border-radius: 5px; transition: width 0.5s ease; }
+    .progress-text { font-size: 13px; color: var(--text-muted); text-align: center; margin-bottom: 20px; }
+    .save-status { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; padding: 6px 14px; border-radius: 20px; margin-bottom: 20px; transition: all 0.3s; }
+    .save-status.ok { background: var(--success-bg); color: var(--success); }
+    .save-status.warn { background: var(--warning-bg); color: var(--warning); }
+    .save-status.error { background: var(--danger-bg); color: var(--danger); }
+    .save-status.info { background: var(--info-bg); color: var(--info); }
+    .save-status svg { width: 14px; height: 14px; }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-width: 420px; margin: 0 auto 28px; }
+    .stat { text-align: center; padding: 16px 8px; background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border); }
+    .stat-number { font-size: 24px; font-weight: 700; }
+    .stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+    .section { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 16px; overflow: hidden; border: 1px solid var(--border); }
+    .section-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; cursor: pointer; user-select: none; transition: background 0.2s; }
+    .section-header:hover { background: #f1f5f9; }
+    .section-title { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .badge { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; background: var(--warning-bg); color: var(--warning); }
+    .badge.done { background: var(--success-bg); color: var(--success); }
+    .toggle { font-size: 16px; color: var(--text-muted); transition: transform 0.2s; }
+    .toggle.open { transform: rotate(90deg); }
+    .task-list { padding: 0 20px 16px; }
+    .task { display: flex; align-items: flex-start; gap: 12px; padding: 10px 0; border-bottom: 1px solid #f1f5f9; }
+    .task:last-child { border-bottom: none; }
+    .checkbox { appearance: none; width: 20px; height: 20px; min-width: 20px; border: 2px solid var(--border); border-radius: 6px; cursor: pointer; transition: all 0.2s; margin-top: 1px; position: relative; }
+    .checkbox:checked { background: var(--accent); border-color: var(--accent); }
+    .checkbox:checked::after { content: '\2713'; color: white; font-size: 12px; font-weight: 700; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+    .checkbox:hover { border-color: var(--accent-light); }
+    .task-text { font-size: 14px; line-height: 1.5; flex: 1; transition: color 0.2s, text-decoration 0.2s; cursor: pointer; }
+    .task-text.done { color: var(--text-muted); text-decoration: line-through; }
+    .completed-section .section-header { background: var(--success-bg); }
+    .completed-section .section-title { color: var(--success); }
+    .completed-section .badge { background: var(--success-bg); color: var(--success); }
+    .collapsed { display: none; }
+    .btn-group { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 24px; }
+    .btn { padding: 10px 20px; font-size: 13px; font-weight: 500; border-radius: 8px; cursor: pointer; transition: all 0.2s; border: 1px solid var(--border); background: var(--card); color: var(--text-muted); }
+    .btn:hover { background: #f1f5f9; color: var(--text); }
+    .btn.primary { background: var(--accent); color: white; border-color: var(--accent); }
+    .btn.primary:hover { background: var(--accent-light); }
+    .btn.danger { color: var(--danger); border-color: #fecaca; }
+    .btn.danger:hover { background: var(--danger-bg); }
+    input[type="file"] { display: none; }
+    @media (max-width: 480px) {
+      .header h1 { font-size: 24px; }
+      .section-header { padding: 14px 16px; }
+      .task-list { padding: 0 16px 12px; }
+      .btn-group { flex-direction: column; align-items: center; }
+      .btn { width: 100%; max-width: 280px; }
+    }
+  </style>
+<base target="_blank">
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>&#127968; Ekhaya Development</h1>
+      <p>Track your progress, one checkbox at a time</p>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="progress-text" id="progressText">Loading...</div>
+      <div class="save-status info" id="saveStatus">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+        <span id="saveStatusText">Checking storage...</span>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="stat-number" id="statDone">0</div><div class="stat-label">Done</div></div>
+        <div class="stat"><div class="stat-number" id="statLeft">0</div><div class="stat-label">Left</div></div>
+        <div class="stat"><div class="stat-number" id="statTotal">0</div><div class="stat-label">Total</div></div>
+      </div>
+      <div class="btn-group">
+        <button class="btn primary" onclick="downloadState()">&#128190; Save Progress to File</button>
+        <button class="btn" onclick="document.getElementById('fileInput').click()">&#128194; Load Progress from File</button>
+        <input type="file" id="fileInput" accept=".json" onchange="uploadState(event)">
+        <button class="btn danger" onclick="resetAll()">&#8634; Reset All</button>
+      </div>
+    </div>
+
+    <div id="checklistRoot"></div>
+  </div>
+
+  <script>
+    const checklistData = [
+      {
+        title: "&#9989; Completed Tasks",
+        tasks: [
+          "Project setup (Next.js, TypeScript, Tailwind, shadcn/ui)",
+          "Landing page",
+          "Layout with Header & Footer",
+          "Mobile hamburger menu",
+          "Properties listing page with search & filters",
+          "Property details page",
+          "List property form (3-step)",
+          "Edit property form",
+          "Dashboard (manage listings)",
+          "Authentication (Clerk - Login/Signup)",
+          "User profile page",
+          "Supabase setup (tables, policies, queries)"
+        ],
+        completed: true,
+        open: false
+      },
+      {
+        title: "1. Core Features",
+        priority: "HIGH",
+        tasks: [
+          "Wishlist / Saved Properties — Save favorites functionality",
+          "Inbox / Messages — Tenant-landlord messaging system",
+          "Property Inquiries — Contact landlord form submission",
+          "Property Views tracking — Analytics for listing owners"
+        ],
+        open: true
+      },
+      {
+        title: "2. Media & Files",
+        priority: "HIGH",
+        tasks: [
+          "Image Upload — Cloudflare R2 integration for property photos",
+          "Image Gallery — Carousel/slider on property details page",
+          "Avatar Upload — User profile picture"
+        ],
+        open: true
+      },
+      {
+        title: "3. Maps & Location",
+        priority: "HIGH",
+        tasks: [
+          "Mapbox GL JS integration — Display properties on map",
+          "Geocoding — Convert addresses to coordinates",
+          "Location-based search — Search by map area",
+          "Property pin clustering — For many properties on map"
+        ],
+        open: false
+      },
+      {
+        title: "4. Advanced Search",
+        priority: "MEDIUM",
+        tasks: [
+          "Advanced filters modal — More filter options (features, amenities)",
+          "Price range slider — Instead of text inputs",
+          "Saved searches — Users save search criteria",
+          "Email/SMS alerts — Notify when new listings match saved search"
+        ],
+        open: false
+      },
+      {
+        title: "5. User Features",
+        priority: "MEDIUM",
+        tasks: [
+          "User roles — Agent, Owner, Tenant differentiation",
+          "Agent profiles — Dedicated agent pages with listings",
+          "Reviews & Ratings — Tenants review landlords/agents",
+          "Verification badge — ID verification process",
+          "User statistics — Views, inquiries per listing"
+        ],
+        open: false
+      },
+      {
+        title: "6. Payments (Post-MVP)",
+        priority: "LOW",
+        tasks: [
+          "MojaPOS integration — MTN MoMo, Unayo, InstaCash",
+          "Escrow for deposits — Hold deposits until lease signed",
+          "Premium listings — Paid featured listings",
+          "Subscription plans — Agent monthly subscriptions",
+          "Transaction fees — Commission handling"
+        ],
+        open: false
+      },
+      {
+        title: "7. Communication",
+        priority: "MEDIUM",
+        tasks: [
+          "Email notifications — Resend integration",
+          "SMS notifications — Twilio/Africa's Talking",
+          "WhatsApp integration — 1-click chat to landlord",
+          "Auto-post to Facebook — Share listings to Facebook Groups",
+          "In-app notifications — Real-time alerts"
+        ],
+        open: false
+      },
+      {
+        title: "8. Admin Panel",
+        priority: "MEDIUM",
+        tasks: [
+          "Admin dashboard — Overview of all listings",
+          "User management — Ban/suspend users",
+          "Listing moderation — Approve/reject listings",
+          "Analytics dashboard — Platform usage stats",
+          "Content management — Edit FAQ, about pages"
+        ],
+        open: false
+      },
+      {
+        title: "9. Content Pages",
+        priority: "MEDIUM",
+        tasks: [
+          "About Us — Company information",
+          "How It Works — Step-by-step guide",
+          "FAQ — Frequently asked questions",
+          "Terms of Service — Legal",
+          "Privacy Policy — Legal",
+          "Contact Us — Contact form",
+          "Blog/News — Property market updates"
+        ],
+        open: false
+      },
+      {
+        title: "10. Performance & SEO",
+        priority: "MEDIUM",
+        tasks: [
+          "SEO optimization — Meta tags, Open Graph",
+          "Sitemap generation — For search engines",
+          "Robots.txt — SEO configuration",
+          "Image optimization — Next.js Image component",
+          "Lazy loading — Images and components",
+          "PWA support — Install as app on mobile",
+          "Service Worker — Offline support"
+        ],
+        open: false
+      },
+      {
+        title: "11. Payments — Full Implementation",
+        priority: "LOW",
+        tasks: [
+          "Payment gateway — Stripe/PayPal for international",
+          "Local payment methods — MojaPOS",
+          "Subscription management — Recurring payments",
+          "Invoice generation — For tenants/landlords",
+          "Refund handling — Dispute resolution"
+        ],
+        open: false
+      },
+      {
+        title: "12. Legal & Compliance",
+        priority: "MEDIUM",
+        tasks: [
+          "Terms & Conditions — User agreement",
+          "Privacy Policy — Data protection",
+          "Cookie consent — GDPR compliance",
+          "Data retention policy — User data management",
+          "Fraud detection — Scam prevention"
+        ],
+        open: false
+      },
+      {
+        title: "13. Testing",
+        priority: "MEDIUM",
+        tasks: [
+          "Unit tests — Jest/Vitest",
+          "Integration tests — Testing Library",
+          "E2E tests — Cypress/Playwright",
+          "Performance testing — Lighthouse scores",
+          "Cross-browser testing — Chrome, Safari, Firefox",
+          "Mobile testing — iOS, Android browsers"
+        ],
+        open: false
+      },
+      {
+        title: "14. Deployment",
+        priority: "HIGH",
+        tasks: [
+          "Production build — Vercel deployment",
+          "Environment variables — Staging/Production",
+          "Custom domain — ekhaya.co.sz or similar",
+          "SSL certificate — HTTPS",
+          "CI/CD pipeline — Automated deployments",
+          "Monitoring — Error tracking (Sentry)",
+          "Analytics — User behavior tracking"
+        ],
+        open: false
+      },
+      {
+        title: "15. Marketing & Growth",
+        priority: "LOW",
+        tasks: [
+          "Social media integration — Share buttons",
+          "Referral program — User invites",
+          "Email marketing — Newsletter",
+          "Landing page optimizations — A/B testing",
+          "Facebook group integration — Auto-post listings",
+          "WhatsApp Business API — Communication"
+        ],
+        open: false
+      },
+      {
+        title: "16. Mobile App (Future)",
+        priority: "LOW",
+        tasks: [
+          "React Native — Mobile app",
+          "Push notifications — Native alerts",
+          "Offline mode — Cached listings",
+          "Mobile camera upload — Take photos directly"
+        ],
+        open: false
+      }
+    ];
+
+    const STORAGE_KEY = 'ekhaya_checklist_state';
+    let memoryState = null;
+    let storageAvailable = false;
+
+    function checkStorage() {
+      try {
+        const test = '__storage_test__';
+        localStorage.setItem(test, test);
+        localStorage.removeItem(test);
+        storageAvailable = true;
+        return true;
+      } catch (e) {
+        storageAvailable = false;
+        return false;
+      }
+    }
+
+    function updateSaveStatus(type, text) {
+      const el = document.getElementById('saveStatus');
+      const txt = document.getElementById('saveStatusText');
+      el.className = 'save-status ' + type;
+      txt.textContent = text;
+    }
+
+    function getTaskId(sectionIdx, taskIdx) {
+      return 'task_' + sectionIdx + '_' + taskIdx;
+    }
+
+    function loadState() {
+      // Try localStorage first
+      if (storageAvailable) {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            memoryState = parsed;
+            updateSaveStatus('ok', 'Auto-saving to browser storage');
+            return parsed;
+          }
+        } catch (e) {}
+      }
+      // Fall back to memory state
+      if (memoryState) {
+        updateSaveStatus('warn', 'Using memory only — click "Save Progress to File" to keep your data');
+        return memoryState;
+      }
+      // Default: mark completed tasks as done
+      const defaultState = {};
+      checklistData.forEach(function(section, si) {
+        if (section.completed) {
+          section.tasks.forEach(function(_, ti) {
+            defaultState[getTaskId(si, ti)] = true;
+          });
+        }
+      });
+      memoryState = defaultState;
+      if (!storageAvailable) {
+        updateSaveStatus('warn', 'Browser storage blocked — use "Save Progress to File"');
+      } else {
+        updateSaveStatus('ok', 'Auto-saving to browser storage');
+      }
+      return defaultState;
+    }
+
+    function saveState(state) {
+      memoryState = state;
+      if (storageAvailable) {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+          updateSaveStatus('ok', 'Saved to browser storage');
+          return;
+        } catch (e) {
+          updateSaveStatus('warn', 'Storage full — use "Save Progress to File"');
+        }
+      } else {
+        updateSaveStatus('warn', 'Using memory only — click "Save Progress to File"');
+      }
+    }
+
+    function downloadState() {
+      const state = memoryState || loadState();
+      const dataStr = JSON.stringify(state, null, 2);
+      const blob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'ekhaya-checklist-progress.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      updateSaveStatus('ok', 'Progress file downloaded');
+    }
+
+    function uploadState(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const state = JSON.parse(e.target.result);
+          memoryState = state;
+          if (storageAvailable) {
+            try {
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+            } catch (err) {}
+          }
+          render();
+          updateSaveStatus('ok', 'Progress loaded from file');
+        } catch (err) {
+          alert('Invalid file format. Please upload a valid JSON file.');
+          updateSaveStatus('error', 'Failed to load file');
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+
+    function resetAll() {
+      if (confirm('Reset all progress? This cannot be undone.')) {
+        memoryState = {};
+        if (storageAvailable) {
+          try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+        }
+        render();
+        updateSaveStatus('info', 'Progress reset');
+      }
+    }
+
+    function toggleTask(sectionIdx, taskIdx) {
+      const id = getTaskId(sectionIdx, taskIdx);
+      const state = loadState();
+      state[id] = !state[id];
+      saveState(state);
+      updateUI();
+    }
+
+    function toggleSection(idx) {
+      const el = document.getElementById('section-body-' + idx);
+      const arrow = document.getElementById('section-arrow-' + idx);
+      const isCollapsed = el.classList.contains('collapsed');
+      if (isCollapsed) {
+        el.classList.remove('collapsed');
+        arrow.classList.add('open');
+      } else {
+        el.classList.add('collapsed');
+        arrow.classList.remove('open');
+      }
+    }
+
+    function updateUI() {
+      const state = loadState();
+      let done = 0;
+      let total = 0;
+
+      checklistData.forEach(function(section, si) {
+        section.tasks.forEach(function(task, ti) {
+          const id = getTaskId(si, ti);
+          const checked = !!state[id];
+          const cb = document.getElementById(id);
+          const txt = document.getElementById(id + '_text');
+          if (cb) cb.checked = checked;
+          if (txt) txt.classList.toggle('done', checked);
+          if (checked) done++;
+          total++;
+        });
+      });
+
+      const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+      document.getElementById('progressFill').style.width = pct + '%';
+      document.getElementById('progressText').textContent = done + ' of ' + total + ' tasks completed (' + pct + '%)';
+      document.getElementById('statDone').textContent = done;
+      document.getElementById('statLeft').textContent = total - done;
+      document.getElementById('statTotal').textContent = total;
+    }
+
+    function render() {
+      const root = document.getElementById('checklistRoot');
+      root.innerHTML = '';
+
+      checklistData.forEach(function(section, si) {
+        const state = loadState();
+        const sectionDone = section.tasks.filter(function(_, ti) {
+          return state[getTaskId(si, ti)];
+        }).length;
+        const sectionTotal = section.tasks.length;
+        const isAllDone = sectionDone === sectionTotal;
+        const isCompletedSection = section.completed;
+
+        const sectionEl = document.createElement('div');
+        sectionEl.className = 'section' + (isCompletedSection ? ' completed-section' : '');
+
+        const badgeText = isCompletedSection ? 'DONE' : (section.priority ? section.priority : (isAllDone ? 'DONE' : sectionDone + '/' + sectionTotal));
+        const badgeClass = (isCompletedSection || isAllDone) ? 'done' : '';
+
+        var tasksHtml = '';
+        section.tasks.forEach(function(task, ti) {
+          const id = getTaskId(si, ti);
+          const checked = !!state[id];
+          tasksHtml += '<div class="task">' +
+            '<input type="checkbox" class="checkbox" id="' + id + '"' + (checked ? ' checked' : '') + ' onclick="toggleTask(' + si + ', ' + ti + ')">' +
+            '<label for="' + id + '" class="task-text' + (checked ? ' done' : '') + '" id="' + id + '_text">' + task + '</label>' +
+          '</div>';
+        });
+
+        sectionEl.innerHTML =
+          '<div class="section-header" onclick="toggleSection(' + si + ')">' +
+            '<div class="section-title">' +
+              '<span>' + section.title + '</span>' +
+              '<span class="badge ' + badgeClass + '">' + badgeText + '</span>' +
+            '</div>' +
+            '<span class="toggle ' + (section.open ? 'open' : '') + '" id="section-arrow-' + si + '">&#9654;</span>' +
+          '</div>' +
+          '<div class="task-list ' + (section.open ? '' : 'collapsed') + '" id="section-body-' + si + '">' + tasksHtml + '</div>';
+
+        root.appendChild(sectionEl);
+      });
+
+      updateUI();
+    }
+
+    // Initialize
+    checkStorage();
+    render();
+  </script>
+</body>
+</html>
