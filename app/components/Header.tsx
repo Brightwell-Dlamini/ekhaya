@@ -32,11 +32,6 @@ export default function Header() {
       return;
     }
 
-    // If it's not a force refresh and we already have a count, don't fetch again immediately
-    if (!forceRefresh && wishlistCount !== null) {
-      // But still fetch in background to keep it fresh
-    }
-
     try {
       setIsLoadingCount(true);
       const count = await getSavedPropertiesCount(user.id);
@@ -58,27 +53,23 @@ export default function Header() {
     }
   }, [isSignedIn, user]);
 
-  // Listen for wishlist updates - this is the key fix
+  // Listen for wishlist updates
   useEffect(() => {
-    // Custom event listener for wishlist updates
     const handleWishlistUpdate = (event: CustomEvent) => {
       const { action, propertyId } = event.detail || {};
-      // If we have the user and we know an action happened, refresh the count
       if (user) {
         fetchWishlistCount(true);
       }
     };
 
-    // Add event listener
     window.addEventListener('wishlistUpdated', handleWishlistUpdate as EventListener);
 
-    // Cleanup
     return () => {
       window.removeEventListener('wishlistUpdated', handleWishlistUpdate as EventListener);
     };
   }, [user]);
 
-  // Also refresh when the page becomes visible again (user returns from another tab)
+  // Also refresh when the page becomes visible again
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible' && user) {
@@ -126,7 +117,6 @@ export default function Header() {
             href="/wishlist" 
             className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white transition-all relative"
             onClick={() => {
-              // Refresh count when navigating to wishlist
               if (user) {
                 fetchWishlistCount(true);
               }
@@ -187,7 +177,7 @@ export default function Header() {
               </SignUpButton>
             </>
           ) : (
-            <UserButton afterSignOutUrl="/" />
+            <UserButton />
           )}
         </div>
 
